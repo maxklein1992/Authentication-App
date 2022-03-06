@@ -4,19 +4,13 @@ import {
   Text,
   TextInput,
   SafeAreaView,
-  Alert,
-  FlatList,
-  Button,
-  Pressable,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
 import { Colors, Dimensions } from "../constants";
 import { useIsFocused } from "@react-navigation/native";
-
-import { useSelector, useDispatch } from "react-redux";
-import { increment, decrement, login, logout } from "../actions/Actions";
+import { MainButton } from "../components";
 
 const AuthenticationScreen = ({ navigation }: { navigation: any }) => {
   const textInput = useRef<TextInput | null>(null);
@@ -25,8 +19,6 @@ const AuthenticationScreen = ({ navigation }: { navigation: any }) => {
   const [otpCode, setOtpCode] = useState<number | null>(null);
   const isFocused = useIsFocused();
 
-  const dispatch = useDispatch();
-
   useEffect(() => {
     if (isFocused) {
       setOtpCode(Math.floor(1000 + Math.random() * 9000));
@@ -34,9 +26,7 @@ const AuthenticationScreen = ({ navigation }: { navigation: any }) => {
   }, [isFocused]);
 
   const onPressContinue = () => {
-    if (phoneNumber) {
-      console.log(otpCode);
-      dispatch(increment(5));
+    if (phoneNumber && phoneNumber.length > 3) {
       navigation.navigate("InputOTP", {
         phoneNumber,
         otpCode,
@@ -52,10 +42,6 @@ const AuthenticationScreen = ({ navigation }: { navigation: any }) => {
     setFocusInput(false);
   };
 
-  useEffect(() => {
-    textInput.current?.focus();
-  });
-
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -69,14 +55,7 @@ const AuthenticationScreen = ({ navigation }: { navigation: any }) => {
         <Text style={styles.textTitle}>
           Please fill in your telephone number
         </Text>
-        <View
-          style={[
-            styles.containerInput,
-            {
-              borderBottomColor: Colors.DEFAULT_GREEN,
-            },
-          ]}
-        >
+        <View style={[styles.containerInput]}>
           <View style={styles.openDialogView}>
             <Text style={{ fontFamily: "Poppins_400Regular" }}>{+31}</Text>
           </View>
@@ -95,20 +74,31 @@ const AuthenticationScreen = ({ navigation }: { navigation: any }) => {
           />
         </View>
         <View style={styles.viewBottom}>
-          <Pressable onPress={phoneNumber ? onPressContinue : null}>
+          <MainButton
+            disabled={!phoneNumber || phoneNumber.length < 4}
+            style={{ width: 150, height: 50 }}
+            onPress={onPressContinue}
+            title="Continue"
+          />
+          {/* <Pressable
+            onPress={
+              phoneNumber && phoneNumber.length > 3 ? onPressContinue : null
+            }
+          >
             <View
               style={[
                 styles.btnContinue,
                 {
-                  backgroundColor: phoneNumber
-                    ? Colors.DEFAULT_GREEN
-                    : Colors.DEFAULT_GREY,
+                  backgroundColor:
+                    phoneNumber && phoneNumber.length > 3
+                      ? Colors.DEFAULT_GREEN
+                      : Colors.DEFAULT_GREY,
                 },
               ]}
             >
               <Text style={styles.textContinue}>Continue</Text>
             </View>
-          </Pressable>
+          </Pressable> */}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -144,6 +134,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderBottomWidth: 2.5,
     width: Dimensions.setWidth(80),
+    borderBottomColor: Colors.DEFAULT_GREEN,
   },
   openDialogView: {
     flexDirection: "row",

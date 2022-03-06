@@ -10,44 +10,88 @@ import AuthenticationScreen from "../screens/AuthenticationScreen";
 import InputOTPScreen from "../screens/InputOTPScreen";
 import SplashScreen from "../screens/SplashScreen";
 import CompleteProfileScreen from "../screens/CompleteProfileScreen";
-
-import * as SecureStore from "expo-secure-store";
+import {
+  View,
+  ActivityIndicator,
+  SegmentedControlIOSComponent,
+} from "react-native";
+import { LogBox } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { deleteDoc, doc, getDoc } from "firebase/firestore";
+import { db } from "../../firebase";
+import { setUser, setToken } from "../actions/Actions";
+import { getData } from "../general/util";
 
 const Stack = createStackNavigator();
 const HomeStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const Navigation = () => {
-  //const hasToken = useSelector((state) => state.isLogged);
+  LogBox.ignoreLogs(["Setting a timer"]);
+  LogBox.ignoreLogs([
+    "[react-native-gesture-handler] Seems like you're using an old API with gesture components, check out new Gestures system!",
+  ]);
+  const dispatch = useDispatch();
 
-  const [userToken, setUserToken] = useState("");
+  const [isLoading, setLoading] = useState(false);
+  const token = useSelector((state) => state.auth.token);
 
-  React.useEffect(() => {
-    // Fetch the token from storage then navigate to our appropriate place
-    const bootstrapAsync = async () => {
-      let userToken;
-
-      try {
-        userToken = await SecureStore.getItemAsync("userToken");
-        setUserToken(userToken);
-      } catch (e) {
-        // Restoring token failed
-      }
-
-      // After restoring token, we may need to validate it in production apps
-
-      // This will switch to the App screen or Auth screen and this loading
-      // screen will be unmounted and thrown away.
-
-      //dispatch({ type: "RESTORE_TOKEN", token: userToken });
-    };
-
-    bootstrapAsync();
+  useEffect(() => {
+    getAuthState();
   }, []);
 
-  return (
+  const getAuthState = async () => {
+    setLoading(true);
+    try {
+      getData("userToken").then((localToken) => {
+        dispatch(setToken(localToken));
+      });
+    } catch (error) {
+      alert(error);
+      setLoading(false);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (token) {
+      fetchUserData();
+    }
+  });
+
+  const fetchUserData = async () => {
+    // Reading Doc in Firebase
+    const user = doc(db, "Users", token);
+    getDoc(user)
+      .then((snapshot) => {
+        if (snapshot.exists) {
+          dispatch(setUser(snapshot.data()));
+          if (token !== null) setLoading(false);
+        } else {
+          alert("No User Found");
+        }
+      })
+      .catch((error) => {
+        alert(error.message);
+      });
+  };
+
+  const update = (value, merge) => {
+    // Reading Doc in Firebase
+    const myDoc = doc(db, "Users", token);
+    setDoc(myDoc, value, { merge: merge })
+      .then(() => {})
+      .catch((error) => {
+        alert(error.message);
+      });
+  };
+
+  return isLoading ? (
+    <View style={{ flex: 1, justifyContent: "center" }}>
+      <ActivityIndicator size="large" color="#0000ff" />
+    </View>
+  ) : (
     <NavigationContainer>
       <SafeAreaProvider>
         <Stack.Navigator
@@ -55,16 +99,16 @@ const Navigation = () => {
             headerShown: false,
           }}
         >
-          {!userToken ? (
+          {!token ? (
             <>
-              <Stack.Screen
-                component={AuthenticationScreen}
-                name={"Authentication"}
-                options={{ headerShown: false }}
-              />
               <Stack.Screen
                 component={SplashScreen}
                 name={"SplashScreen"}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                component={AuthenticationScreen}
+                name={"Authentication"}
                 options={{ headerShown: false }}
               />
               <Stack.Screen
@@ -96,13 +140,13 @@ const Navigation = () => {
 const Home = () => {
   return (
     <Tab.Navigator
-      tabBarOptions={{
+      screenOptions={{
         labelPosition: "below-icon",
+        headerShown: false,
         style: {
           backgroundColor: "black",
         },
       }}
-      screenOptions={{ headerShown: false }}
     >
       <Tab.Screen
         name="HomeStack"
@@ -161,11 +205,6 @@ function HomeStackScreen() {
     >
       <HomeStack.Screen
         name="Home"
-        component={HomeScreen}
-        options={{ headerShown: false }}
-      />
-      <HomeStack.Screen
-        name="Home2"
         component={HomeScreen}
         options={{ headerShown: false }}
       />

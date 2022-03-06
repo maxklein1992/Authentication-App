@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, SafeAreaView, Alert, FlatList } from "react-native";
+import { useSelector } from "react-redux";
+import { selectUser } from "../actions/Selectors";
 
 const HomeScreen = () => {
+  const user = useSelector(selectUser);
   return (
     <View
       style={{
@@ -11,7 +14,9 @@ const HomeScreen = () => {
         backgroundColor: "white",
       }}
     >
-      <Text>Home screen</Text>
+      <Text>
+        Hello {user.firstName} {user.lastName}
+      </Text>
     </View>
   );
 };

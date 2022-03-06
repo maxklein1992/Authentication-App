@@ -22,15 +22,9 @@ import {
 import AppLoading from "expo-app-loading";
 import Navigation from "./src/navigators";
 import { Provider } from "react-redux";
-import { createStore } from "redux";
-import allReducer from "./src/reducers";
+import { store } from "./src/context/Store";
 
 export default function App() {
-  const store = createStore(
-    allReducer,
-    window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
-  );
-
   const [fontsLoaded] = useFonts({
     Poppins_100Thin,
     Poppins_100Thin_Italic,

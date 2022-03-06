@@ -14,8 +14,9 @@ import {
 } from "react-native";
 import { Colors, Dimensions } from "../constants";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
+import { MainButton } from "../components";
+import NavigationHeader from "../components/NavigationHeader";
 
 const InputOTPScreen = ({
   navigation,
@@ -73,15 +74,7 @@ const InputOTPScreen = ({
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Ionicons
-          name="chevron-back-outline"
-          size={30}
-          onPress={() => navigation.goBack()}
-          style={{ position: "absolute", left: 20, top: 9 }}
-        />
-        <Text style={styles.headerTitle}>OTP Verification</Text>
-      </View>
+      <NavigationHeader title="OTP Verification" navigation={navigation} />
       <Text style={styles.textTile}>
         Input your OTP code sent by SMS at{" "}
         <Text style={styles.phoneNumberText}>{phoneNumber}</Text> now please.
@@ -176,19 +169,7 @@ const InputOTPScreen = ({
         </View>
       </View>
       <View style={styles.buttonContainer}>
-        <Pressable
-          style={[
-            styles.Button,
-            {
-              backgroundColor: !pin4
-                ? Colors.DEFAULT_GREY
-                : Colors.DEFAULT_GREEN,
-            },
-          ]}
-          onPress={!pin4 ? () => "" : () => verifyOTP()}
-        >
-          <Text style={styles.ButtonText}>Verify</Text>
-        </Pressable>
+        <MainButton title="Verify" disabled={!pin4} onPress={verifyOTP} />
       </View>
       <Modal transparent={true} visible={isModalVisible}>
         <View
@@ -202,13 +183,19 @@ const InputOTPScreen = ({
               borderRadius: 10,
               paddingVertical: 60,
               alignItems: "center",
+              shadowColor: "#000",
+              shadowOffset: {
+                width: 0,
+                height: 9,
+              },
+              shadowOpacity: 0.5,
+              shadowRadius: 12.35,
+              elevation: 19,
             }}
           >
             <Text style={styles.headerModal}>OTP Code was incorrect</Text>
             <View style={[styles.buttonContainer, { marginTop: 40 }]}>
-              <Pressable style={styles.Button} onPress={() => tryAgain()}>
-                <Text style={styles.ButtonText}>Try again</Text>
-              </Pressable>
+              <MainButton title="Try again" onPress={tryAgain}></MainButton>
             </View>
           </View>
         </View>
@@ -220,18 +207,6 @@ const InputOTPScreen = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  headerContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    width: Dimensions.setWidth(80),
-  },
-  headerTitle: {
-    fontSize: 20,
-    textAlign: "center",
-    fontFamily: "Poppins_400Regular",
   },
   headerModal: {
     fontFamily: "Poppins_400Regular",
@@ -280,20 +255,6 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: 20,
     marginTop: 40,
-  },
-  Button: {
-    backgroundColor: Colors.DEFAULT_GREEN,
-    borderRadius: 8,
-    height: Dimensions.setHeight(8),
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-  },
-  ButtonText: {
-    fontSize: 18,
-    lineHeight: 18 * 1.4,
-    color: Colors.DEFAULT_WHITE,
-    fontFamily: "Poppins_400Regular",
   },
 });
 

@@ -3,20 +3,20 @@ import {
   View,
   Text,
   TextInput,
-  Alert,
-  FlatList,
-  Button,
-  Modal,
   Pressable,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors, Dimensions } from "../constants";
 import { Ionicons } from "@expo/vector-icons";
 import { useSelector, useDispatch } from "react-redux";
-import { increment, decrement, login, logout } from "../actions/Actions";
+import { createUser, setToken } from "../actions/Actions";
+import { db } from "../../firebase";
+import { setDoc, doc, getDoc, deleteDoc } from "firebase/firestore";
+import { deleteData, storeData } from "../general/util";
+import { MainButton } from "../components";
+import NavigationHeader from "../components/NavigationHeader";
 
 const CompleteProfileScreen = ({
   navigation,
@@ -25,6 +25,8 @@ const CompleteProfileScreen = ({
   navigation: any;
   route: any;
 }) => {
+  const phoneNumber = route.params?.phoneNumber;
+
   const firstNameRef = useRef<TextInput | null>(null);
   const lastNameRef = useRef<TextInput | null>(null);
   const mailRef = useRef<TextInput | null>(null);
@@ -32,24 +34,45 @@ const CompleteProfileScreen = ({
   const [firstName, setFirstName] = useState<string | null>("");
   const [lastName, setLastName] = useState<string | null>("");
   const [mail, setMail] = useState<string | null>("");
+  const [isLoading, setLoading] = useState<boolean>(false);
 
   const dispatch = useDispatch();
 
-  const goHome = () => {
-    dispatch(login());
+  // const user = { phoneNumber, firstName, lastName, mail };
+
+  const finalizeOnboarding = () => {
+    setLoading(true);
+    deleteData("userToken");
+    // Creating New Doc in Firebase
+    const newUser = doc(db, "Users", phoneNumber);
+
+    //Your Document goes here
+    const userData = {
+      "firstName": firstName,
+      "lastName": lastName,
+      "mail": mail,
+      "token": phoneNumber,
+    };
+    setDoc(newUser, userData)
+      .then(() => {
+        //alert("New User Created!");
+        storeData("userToken", phoneNumber);
+        dispatch(setToken(phoneNumber));
+        setLoading(false);
+      })
+      .catch((error) => {
+        alert(error.message);
+      });
+    dispatch(createUser(userData));
   };
 
-  return (
+  return isLoading ? (
+    <View style={{ flex: 1, justifyContent: "center" }}>
+      <ActivityIndicator size="large" color="#0000ff" />
+    </View>
+  ) : (
     <SafeAreaView style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Ionicons
-          name="chevron-back-outline"
-          size={30}
-          onPress={() => navigation.goBack()}
-          style={{ position: "absolute", left: 20, top: 9 }}
-        />
-        <Text style={styles.headerTitle}>Complete Profile</Text>
-      </View>
+      <NavigationHeader title="Complete Profile" navigation={navigation} />
       <Text style={styles.textTile}>
         Please enter your personal details to complete your profile.
       </Text>
@@ -91,20 +114,11 @@ const CompleteProfileScreen = ({
         </View>
       </View>
       <View style={styles.buttonContainer}>
-        <Pressable
-          style={[
-            styles.Button,
-            {
-              backgroundColor:
-                !firstName || !lastName || !mail
-                  ? Colors.DEFAULT_GREY
-                  : Colors.DEFAULT_GREEN,
-            },
-          ]}
-          onPress={!firstName || !lastName || !mail ? () => "" : () => goHome()}
-        >
-          <Text style={styles.ButtonText}>Done</Text>
-        </Pressable>
+        <MainButton
+          disabled={!firstName || !lastName || !mail}
+          title="Done"
+          onPress={finalizeOnboarding}
+        />
       </View>
     </SafeAreaView>
   );
@@ -117,18 +131,6 @@ const styles = StyleSheet.create({
   containerAvoidingView: {
     flex: 1,
     alignItems: "center",
-  },
-  headerContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    width: Dimensions.setWidth(80),
-  },
-  headerTitle: {
-    fontSize: 20,
-    textAlign: "center",
-    fontFamily: "Poppins_400Regular",
   },
   textTile: {
     fontSize: 16,
@@ -184,20 +186,6 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: 20,
     marginTop: 40,
-  },
-  Button: {
-    backgroundColor: Colors.DEFAULT_GREEN,
-    borderRadius: 8,
-    height: Dimensions.setHeight(8),
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-  },
-  ButtonText: {
-    fontSize: 18,
-    lineHeight: 18 * 1.4,
-    color: Colors.DEFAULT_WHITE,
-    fontFamily: "Poppins_400Regular",
   },
 });
 

@@ -8,7 +8,7 @@ const SplashScreen = ({ navigation }: { navigation: any }) => {
   useEffect(() => {
     setTimeout(() => {
       navigation.navigate("Authentication");
-    }, 2500);
+    }, 4000);
   }, []);
 
   return (
@@ -19,9 +19,7 @@ const SplashScreen = ({ navigation }: { navigation: any }) => {
         translucent
       />
       <Image source={Images.BURGER} resizeMode="contain" style={styles.image} />
-      <Text style={[styles.titleText, { fontFamily: "Poppins_600SemiBold" }]}>
-        Menu Check
-      </Text>
+      <Text style={[styles.titleText]}>Menu Check</Text>
     </View>
   );
 };
@@ -37,9 +35,9 @@ const styles = StyleSheet.create({
     color: Colors.DEFAULT_WHITE,
     fontSize: 40,
     marginTop: 30,
+    fontFamily: "Poppins_600SemiBold",
   },
   image: {
-    color: "white",
     height: Display.setHeight(30),
     width: Display.setWidth(60),
   },
